@@ -3,76 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QSmart NextQ – Display TV</title>
+    <title>Q-Smart Display TV</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
         .num { font-variant-numeric: tabular-nums; }
         .hero-pop { animation: heroPop .45s cubic-bezier(.2,.9,.3,1.4); }
         @keyframes heroPop {
             from { opacity: 0; transform: scale(.82); }
             to { opacity: 1; transform: scale(1); }
         }
-        .flash-border { animation: flashBorder .45s ease-in-out 2; }
-        @keyframes flashBorder {
-            0%, 100% { border-color: rgba(99, 102, 241, .35); box-shadow: 0 0 0 0 rgba(99, 102, 241, .5); }
-            50% { border-color: rgba(99, 102, 241, 1); box-shadow: 0 0 60px rgba(99, 102, 241, .55); }
+        .glow-on { animation: glowOn .5s ease-in-out; }
+        @keyframes glowOn {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); border-color: rgba(99, 102, 241, .3); }
+            50% { box-shadow: 0 0 80px 12px rgba(99, 102, 241, .55); border-color: rgba(99, 102, 241, 1); }
         }
+        .fade-in { animation: fadeIn .3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
     </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen antialiased flex flex-col overflow-hidden">
-    <!-- Header -->
-    <header class="flex items-center justify-between px-8 py-4 border-b border-slate-800 bg-slate-900/60">
-        <div>
-            <h1 class="text-xl font-extrabold tracking-tight"><span class="text-indigo-400">QSmart</span> NextQ</h1>
-            <p class="text-xs text-slate-400">Sistem Informasi Antrean Digital</p>
+<body class="bg-slate-950 text-white h-screen flex flex-col overflow-hidden antialiased">
+
+    <!-- TV Header -->
+    <header class="flex items-center justify-between px-8 py-3.5 border-b border-slate-800 bg-slate-900/80 shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-2xl font-black shrink-0">Q</div>
+            <div>
+                <h1 class="text-2xl font-extrabold tracking-tight leading-none">Klinik QSmart</h1>
+                <span class="inline-block mt-1.5 text-[11px] font-bold uppercase tracking-[.2em] text-indigo-300 bg-indigo-500/15 border border-indigo-500/40 rounded-full px-3 py-1">Ruang Tunggu Utama</span>
+            </div>
         </div>
-        <div class="text-right">
-            <p id="liveClock" class="num text-4xl font-black tracking-tight">--:--:--</p>
-            <p id="liveDate" class="text-sm text-slate-400 mt-0.5">—</p>
+        <div class="flex items-center gap-6">
+            <button id="btnEnableSound"
+                class="text-sm font-bold px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition">🔊 Aktifkan Suara</button>
+            <div class="text-right">
+                <p id="liveClock" class="num text-4xl font-black tracking-tight leading-none">--:--:--</p>
+                <p id="liveDate" class="text-sm text-slate-400 mt-1">—</p>
+            </div>
         </div>
     </header>
 
-    <main class="flex-1 grid lg:grid-cols-3 gap-6 px-8 py-6 min-h-0">
+    <main class="flex-1 grid grid-cols-[1fr_380px] gap-6 px-8 py-6 min-h-0">
 
-        <!-- Hero Nomor -->
-        <section class="lg:col-span-2 flex flex-col gap-6 min-h-0">
-            <div id="heroPanel" class="flex-1 bg-gradient-to-br from-indigo-600/25 via-slate-900 to-slate-900 border-2 rounded-3xl flex flex-col items-center justify-center p-8">
-                <p class="text-sm font-semibold uppercase tracking-[.3em] text-indigo-300 mb-3">Sekarang Dipanggil</p>
-                <p id="heroTicketCode" class="num hero-pop text-[9rem] sm:text-[11rem] leading-none font-black tracking-tight">—</p>
-                <div class="mt-4 flex items-center gap-3">
-                    <span id="heroCounterBox" class="inline-block bg-indigo-500 text-white text-3xl font-extrabold px-8 py-3 rounded-2xl">LOKET —</span>
-                </div>
-                <p id="heroServiceName" class="text-slate-400 mt-3 text-lg">Menunggu panggilan berikutnya...</p>
+        <!-- Hero Card -->
+        <section id="heroPanel" class="flex flex-col rounded-3xl border-2 bg-gradient-to-br from-indigo-600/25 via-slate-900 to-slate-900 p-8 min-h-0 glow-on">
+            <div class="flex items-start justify-between shrink-0">
+                <p class="text-sm font-semibold uppercase tracking-[.3em] text-indigo-300">Sekarang Dipanggil</p>
+                <p id="heroCallTime" class="num text-sm text-slate-400 font-semibold">—</p>
             </div>
 
-            <!-- Next tickets -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                <p class="text-xs font-semibold uppercase tracking-[.25em] text-slate-400 mb-4">Antrean Berikutnya</p>
-                <ol id="nextTicketsList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></ol>
+            <div class="flex-1 flex flex-col items-center justify-center">
+                <p id="heroTicketCode" class="num hero-pop text-[10rem] xl:text-[13rem] leading-none font-black tracking-tight text-white">—</p>
+                <p id="heroServiceName" class="text-2xl text-slate-300 mt-5">Menunggu panggilan berikutnya...</p>
+                <div id="heroCounterBox" class="mt-7 inline-block bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 text-4xl xl:text-5xl font-black px-12 py-5 rounded-3xl shadow-2xl">
+                    MENUNGGU PANGGILAN
+                </div>
             </div>
         </section>
 
-        <!-- Counters grid -->
-        <aside class="bg-slate-900 border border-slate-800 rounded-3xl p-6 overflow-y-auto min-h-0">
-            <div class="flex items-center justify-between mb-4">
-                <p class="text-xs font-semibold uppercase tracking-[.25em] text-slate-400">Status Loket</p>
-                <button id="btnEnableSound"
-                    class="text-xs font-bold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition">
-                    🔊 Aktifkan Suara
-                </button>
+        <!-- Right Column: counters + next tickets -->
+        <aside class="flex flex-col gap-5 min-h-0">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shrink-0">
+                <p class="text-xs font-semibold uppercase tracking-[.25em] text-slate-400 mb-3">Status Loket</p>
+                <div id="countersGrid" class="grid grid-cols-1 gap-3"></div>
             </div>
-            <div id="countersGrid" class="space-y-3"></div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 flex-1 overflow-y-auto min-h-0">
+                <p class="text-xs font-semibold uppercase tracking-[.25em] text-slate-400 mb-3">Antrean Berikutnya</p>
+                <div id="nextTicketsList" class="flex flex-wrap gap-2"></div>
+            </div>
         </aside>
     </main>
 
-    <!-- Marquee -->
-    <footer class="border-t border-slate-800 bg-slate-900/80 overflow-hidden py-3">
+    <!-- Marquee Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/80 overflow-hidden py-3 shrink-0">
         <p id="marqueeText" class="animate-marquee text-lg font-semibold text-indigo-200">
-            Selamat datang di QSmart NextQ • Silakan ambil nomor antrean melalui mesin antrean • Mohon menunggu panggilan nomor Anda • Terima kasih atas kesabaran Anda
+            Selamat datang di Klinik QSmart • Silakan ambil nomor antrean melalui mesin antrean • Mohon menunggu panggilan nomor Anda • Terima kasih atas kesabaran Anda
         </p>
     </footer>
 

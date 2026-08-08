@@ -1,5 +1,7 @@
-// QSmart Admin Controller
+// Q-Smart Admin Controller (Member C)
 const engine = window.qsmartEngine;
+
+const GRACE_WARN_SECONDS = 30;
 
 let state = {
     counterId: null,
@@ -8,9 +10,9 @@ let state = {
 };
 
 const STATUS_LABEL = {
-    waiting:  { text: 'Menunggu', color: 'bg-sky-500/15 text-sky-300 border-sky-500/40' },
-    called:   { text: 'Dipanggil', color: 'bg-amber-500/15 text-amber-300 border-amber-500/40' },
-    serving:  { text: 'Dilayani', color: 'bg-violet-500/15 text-violet-300 border-violet-500/40' },
+    waiting:  { text: 'Menunggu', color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40' },
+    called:   { text: 'Dipanggil', color: 'bg-amber-500/15 text-amber-300 border-amber-500/40 animate-pulse' },
+    serving:  { text: 'Dilayani', color: 'bg-sky-500/15 text-sky-300 border-sky-500/40' },
     done:     { text: 'Selesai', color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40' },
     expired:  { text: 'Lewat', color: 'bg-rose-500/15 text-rose-300 border-rose-500/40' }
 };
@@ -22,7 +24,8 @@ const els = {
     statDone: document.getElementById('statDone'),
     statAvgDuration: document.getElementById('statAvgDuration'),
     activeTicketCode: document.getElementById('activeTicketCode'),
-    activeTicketInfo: document.getElementById('activeTicketInfo'),
+    activeTicketService: document.getElementById('activeTicketService'),
+    activeCounterBadge: document.getElementById('activeCounterBadge'),
     graceWrapper: document.getElementById('graceWrapper'),
     graceCountdownText: document.getElementById('graceCountdownText'),
     btnCallNext: document.getElementById('btnCallNext'),
@@ -39,10 +42,8 @@ const els = {
 function init() {
     renderCounterOptions();
     bindEvents();
-    engine.subscribe(() => {
-        render();
-    });
-    setInterval(render, 1000); // refresh grace countdown & stats
+    engine.subscribe(() => render());
+    setInterval(render, 1000); // grace countdown + stats refresh
     render();
 }
 
@@ -89,6 +90,10 @@ function fmtTime(iso) {
     return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
+function fmtPos(p) {
+    return p % 1 === 0 ? String(p) : p.toFixed(1);
+}
+
 function fmtDuration(seconds) {
     if (seconds == null || isNaN(seconds)) return '—';
     const m = Math.floor(seconds / 60);
@@ -105,20 +110,18 @@ function showToast(msg) {
 
 // ---------- Render ----------
 function render() {
-    const tickets = engine.getTickets();
-    updateStats(tickets);
-    updateActiveTicket(tickets);
+    updateStats();
+    updateActiveTicket();
     renderTable();
 }
 
-function updateStats(tickets) {
+function updateStats() {
+    const tickets = engine.getTickets();
     els.statWaiting.textContent = tickets.filter(t => t.status === 'waiting').length;
-    els.statCalling.textContent = tickets.filter(t => t.status === 'called').length;
+    els.statCalling.textContent = tickets.filter(t => t.status === 'called' || t.status === 'serving').length;
     els.statDone.textContent = tickets.filter(t => t.status === 'done').length;
 
-    const doneTickets = tickets.filter(t =>
-        t.status === 'done' && t.served_at && t.done_at
-    );
+    const doneTickets = tickets.filter(t => t.status === 'done' && t.served_at && t.done_at);
     let total = 0, count = 0;
     doneTickets.forEach(t => {
         const dur = (new Date(t.done_at).getTime() - new Date(t.served_at).getTime()) / 1000;
@@ -127,24 +130,24 @@ function updateStats(tickets) {
     els.statAvgDuration.textContent = count > 0 ? fmtDuration(total / count) : '—';
 }
 
-function getActiveTicket(tickets) {
+function getActiveTicket() {
     if (!state.counterId) return null;
-    const active = tickets
+    const active = engine.getTickets()
         .filter(t => t.counter_id === state.counterId && (t.status === 'called' || t.status === 'serving'))
         .sort((a, b) => new Date(b.called_at || 0) - new Date(a.called_at || 0));
     return active[0] || null;
 }
 
-function updateActiveTicket(tickets) {
-    state.activeTicket = getActiveTicket(tickets);
+function updateActiveTicket() {
+    state.activeTicket = getActiveTicket();
     const t = state.activeTicket;
 
     els.activeTicketCode.textContent = t ? t.code : '—';
-    els.activeTicketInfo.textContent = t
-        ? `${t.service_name} · ${STATUS_LABEL[t.status].text} · ${t.counter_name || 'Loket'}`
-        : 'Belum ada tiket aktif di loket ini';
+    els.activeTicketService.textContent = t ? (t.service_name || 'Layanan') : 'Belum ada tiket aktif di loket ini';
+    els.activeCounterBadge.textContent = t && t.counter_name ? t.counter_name.toUpperCase() : 'LOKET —';
+    els.activeCounterBadge.classList.toggle('hidden', !t);
 
-    // Grace countdown
+    // Grace countdown (only while status = called)
     if (t && t.status === 'called' && t.grace_expires_at) {
         els.graceWrapper.classList.remove('hidden');
         updateGrace(t);
@@ -154,8 +157,11 @@ function updateActiveTicket(tickets) {
         updateGrace._int = null;
     }
 
-    // Buttons
-    els.btnCallNext.disabled = !state.counterId || !tickets.some(x => x.status === 'waiting' && x.service_id === engine.getCounters().find(c => c.id === state.counterId)?.serviceId);
+    // Buttons state
+    const counter = engine.getCounters().find(c => c.id === state.counterId);
+    els.btnCallNext.disabled = !state.counterId || !counter || !engine.getTickets().some(x =>
+        x.status === 'waiting' && x.service_id === counter.serviceId
+    );
     els.btnServe.disabled = !(t && t.status === 'called');
     els.btnFinish.disabled = !(t && t.status === 'serving');
     els.btnSkip.disabled = !t || t.status === 'expired';
@@ -166,19 +172,27 @@ function updateGrace(t) {
     const tick = () => {
         const remaining = new Date(t.grace_expires_at).getTime() - Date.now();
         const el = els.graceCountdownText;
+
         if (remaining <= 0) {
             el.textContent = 'GRACE HABIS!';
-            el.className = 'num inline-block pulse-red rounded-xl px-4 py-2 text-2xl font-bold';
+            el.className = 'num inline-block animate-pulse bg-rose-500/25 text-rose-200 border border-rose-500/60 rounded-xl px-5 py-2.5 text-3xl font-bold';
             clearInterval(updateGrace._int);
             updateGrace._int = null;
+            // Auto-skip when grace period ends (once)
+            if (t.status === 'called') {
+                engine.lewatiTiket(t.id);
+                showToast(`⏭ ${t.code} dilewati otomatis — grace period habis`);
+            }
             return;
         }
+
         const m = Math.floor(remaining / 60000);
         const s = Math.floor((remaining % 60000) / 1000);
         el.textContent = `${m}:${String(s).padStart(2, '0')}`;
-        const warn = remaining < 30000;
-        el.className = `num inline-block rounded-xl px-4 py-2 text-2xl font-bold border ${warn
-            ? 'bg-rose-500/15 text-rose-300 border-rose-500/40'
+
+        const warn = remaining < GRACE_WARN_SECONDS * 1000;
+        el.className = `num inline-block rounded-xl px-5 py-2.5 text-3xl font-bold border ${warn
+            ? 'animate-pulse bg-rose-500/25 text-rose-200 border-rose-500/60'
             : 'bg-amber-500/15 text-amber-300 border-amber-500/40'}`;
     };
     tick();
@@ -187,15 +201,13 @@ function updateGrace(t) {
 
 function renderTable() {
     const tickets = engine.getTickets().slice().sort((a, b) => a.queue_position - b.queue_position);
-    const filtered = state.filter === 'semua'
-        ? tickets
-        : tickets.filter(t => t.status === state.filter);
+    const filtered = state.filter === 'semua' ? tickets : tickets.filter(t => t.status === state.filter);
 
     els.queueTableBody.innerHTML = '';
 
     if (filtered.length === 0) {
         const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="6" class="px-5 py-10 text-center text-slate-500">Belum ada tiket dengan status ini</td>';
+        tr.innerHTML = '<td colspan="7" class="px-5 py-10 text-center text-slate-500">Belum ada tiket dengan status ini</td>';
         els.queueTableBody.appendChild(tr);
         return;
     }
@@ -208,13 +220,14 @@ function renderTable() {
         const canSkip = !['done', 'expired'].includes(t.status);
 
         tr.innerHTML = `
+            <td class="px-5 py-3 text-slate-400 num font-semibold">#${fmtPos(t.queue_position)}</td>
             <td class="px-5 py-3 font-extrabold text-base num">${t.code}</td>
             <td class="px-5 py-3 text-slate-300">${t.service_name || serviceName(t.service_id)}</td>
+            <td class="px-5 py-3 text-slate-300">${t.counter_name || '—'}</td>
             <td class="px-5 py-3">
                 <span class="inline-block text-xs font-semibold px-2.5 py-1 rounded-full border ${st.color}">${st.text}</span>
             </td>
-            <td class="px-5 py-3 text-slate-300">${t.counter_name || '—'}</td>
-            <td class="px-5 py-3 text-slate-400 num">${fmtTime(t.created_at)}</td>
+            <td class="px-5 py-3 text-slate-400 num">${fmtTime(t.called_at || t.created_at)}</td>
             <td class="px-5 py-3 text-right">
                 ${canSkip ? `<button data-skip="${t.id}" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition">⏭ Lewati</button>` : ''}
             </td>
@@ -244,21 +257,21 @@ function onCallNext() {
 function onServe() {
     if (state.activeTicket) {
         engine.tandaiHadir(state.activeTicket.id);
-        showToast(`${state.activeTicket.code} sudah hadir, silakan layani`);
+        showToast(`✔ ${state.activeTicket.code} sudah hadir, silakan layani`);
     }
 }
 
 function onFinish() {
     if (state.activeTicket) {
         engine.selesaikanTiket(state.activeTicket.id);
-        showToast(`${state.activeTicket.code} selesai dilayani 🎉`);
+        showToast(`✓ ${state.activeTicket.code} selesai dilayani`);
     }
 }
 
 function onSkipActive() {
     if (state.activeTicket) {
         engine.lewatiTiket(state.activeTicket.id);
-        showToast(`${state.activeTicket.code} dilewati`);
+        showToast(`⏭ ${state.activeTicket.code} dilewati`);
     }
 }
 

@@ -1,5 +1,7 @@
-// QSmart Display TV Controller
+// Q-Smart Display TV Controller (Member C)
 const engine = window.qsmartEngine;
+
+const MAX_NEXT_TICKETS = 8;
 
 let soundEnabled = false;
 let audioCtx = null;
@@ -9,8 +11,9 @@ const els = {
     liveClock: document.getElementById('liveClock'),
     liveDate: document.getElementById('liveDate'),
     heroTicketCode: document.getElementById('heroTicketCode'),
-    heroCounterBox: document.getElementById('heroCounterBox'),
     heroServiceName: document.getElementById('heroServiceName'),
+    heroCallTime: document.getElementById('heroCallTime'),
+    heroCounterBox: document.getElementById('heroCounterBox'),
     heroPanel: document.getElementById('heroPanel'),
     countersGrid: document.getElementById('countersGrid'),
     nextTicketsList: document.getElementById('nextTicketsList'),
@@ -21,13 +24,11 @@ const els = {
 // ---------- Clock ----------
 function updateClock() {
     const now = new Date();
-    const time = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false });
-    const date = now.toLocaleDateString('id-ID', {
+    els.liveClock.textContent = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false });
+    els.liveDate.textContent = now.toLocaleDateString('id-ID', {
         timeZone: 'Asia/Jakarta',
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
-    els.liveClock.textContent = time;
-    els.liveDate.textContent = date;
 }
 
 // ---------- Audio ----------
@@ -59,7 +60,7 @@ function playChime() {
         osc.start(start);
         osc.stop(start + dur + 0.05);
     };
-    tone(880, t0, 0.5);         // ding
+    tone(880, t0, 0.5);           // ding
     tone(659.25, t0 + 0.32, 0.7); // dong
 }
 
@@ -96,24 +97,38 @@ function getLatestCalled(tickets) {
     return active[0] || null;
 }
 
+function fmtTime(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+}
+
 function renderHero() {
     const t = getLatestCalled(engine.getTickets());
     const newCall = t && t.code !== lastCalledCode;
     lastCalledCode = t ? t.code : null;
 
     els.heroTicketCode.textContent = t ? t.code : '—';
-    els.heroCounterBox.textContent = t && t.counter_name ? t.counter_name.toUpperCase() : 'LOKET —';
     els.heroServiceName.textContent = t
-        ? `${t.service_name || ''} · ${t.status === 'serving' ? 'Sedang dilayani' : 'Dipanggil — mohon segera hadir'}`
+        ? `${t.service_name || 'Layanan'} · ${t.status === 'serving' ? 'sedang dilayani' : 'mohon segera hadir'}`
         : 'Menunggu panggilan berikutnya...';
+    els.heroCallTime.textContent = t ? `Waktu panggilan: ${fmtTime(t.called_at)}` : '—';
+
+    if (t && t.counter_name) {
+        const cname = t.counter_name.toUpperCase();
+        els.heroCounterBox.innerHTML = `SILAKAN KE <span class="underline decoration-4 underline-offset-4">${cname}</span>`;
+        els.heroCounterBox.className = 'mt-7 inline-block bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 text-4xl xl:text-5xl font-black px-12 py-5 rounded-3xl shadow-2xl';
+    } else {
+        els.heroCounterBox.innerHTML = 'MENUNGGU PANGGILAN';
+        els.heroCounterBox.className = 'mt-7 inline-block bg-slate-800 text-slate-300 text-4xl xl:text-5xl font-black px-12 py-5 rounded-3xl border border-slate-700';
+    }
 
     if (newCall) {
         els.heroTicketCode.classList.remove('hero-pop');
-        els.heroPanel.classList.remove('flash-border');
+        els.heroPanel.classList.remove('glow-on');
         void els.heroTicketCode.offsetWidth;
         void els.heroPanel.offsetWidth;
         els.heroTicketCode.classList.add('hero-pop');
-        els.heroPanel.classList.add('flash-border');
+        els.heroPanel.classList.add('glow-on');
     }
 }
 
@@ -133,21 +148,23 @@ function renderCounters() {
             badgeClass = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40';
         } else if (active) {
             status = 'Dipanggil';
-            badgeClass = 'bg-amber-500/15 text-amber-300 border-amber-500/40';
+            badgeClass = 'bg-amber-500/15 text-amber-300 border-amber-500/40 animate-pulse';
         } else {
-            status = 'Siaga';
+            status = 'Idle';
             badgeClass = 'bg-slate-500/15 text-slate-400 border-slate-600/40';
         }
 
         const card = document.createElement('div');
-        card.className = `rounded-2xl border ${active ? 'border-indigo-500/40 bg-indigo-500/10' : 'border-slate-800 bg-slate-800/40'} p-5 transition`;
+        card.className = `rounded-2xl border ${active ? 'border-indigo-500/40 bg-indigo-500/10' : 'border-slate-800 bg-slate-800/40'} p-4 flex items-center justify-between gap-3 transition`;
         card.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-                <p class="font-bold text-lg">${c.name}</p>
-                <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeClass}">${status}</span>
+            <div>
+                <p class="font-bold text-lg leading-tight">${c.name}</p>
+                <p class="text-xs text-slate-400 mt-0.5">${serviceName(c.serviceId)}</p>
             </div>
-            <p class="num text-4xl font-black ${active ? 'text-white' : 'text-slate-600'}">${active ? active.code : '—'}</p>
-            <p class="text-xs text-slate-400 mt-1.5">${serviceName(c.serviceId)}</p>
+            <div class="text-right">
+                <p class="num text-3xl font-black ${active ? 'text-white' : 'text-slate-600'}">${active ? active.code : 'Idle'}</p>
+                <span class="inline-block mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${badgeClass}">${status}</span>
+            </div>
         `;
         els.countersGrid.appendChild(card);
     });
@@ -157,34 +174,36 @@ function renderNextTickets() {
     const waiting = engine.getTickets()
         .filter(t => t.status === 'waiting')
         .sort((a, b) => a.queue_position - b.queue_position)
-        .slice(0, 6);
+        .slice(0, MAX_NEXT_TICKETS);
 
     els.nextTicketsList.innerHTML = '';
     if (waiting.length === 0) {
-        const li = document.createElement('li');
-        li.className = 'col-span-full text-center text-slate-500 py-6';
-        li.textContent = 'Tidak ada antrean menunggu';
-        els.nextTicketsList.appendChild(li);
+        const p = document.createElement('p');
+        p.className = 'text-slate-500 text-sm py-4 text-center w-full';
+        p.textContent = 'Tidak ada antrean menunggu';
+        els.nextTicketsList.appendChild(p);
         return;
     }
 
     waiting.forEach((t, i) => {
-        const li = document.createElement('li');
-        li.className = 'fade-in flex items-center gap-3 bg-slate-800/50 border border-slate-700/60 rounded-2xl px-4 py-3';
-        li.innerHTML = `
-            <span class="num w-8 text-center text-2xl font-black ${i === 0 ? 'text-indigo-300' : 'text-slate-500'}">${i + 1}</span>
-            <span class="num text-xl font-extrabold flex-1">${t.code}</span>
-            <span class="text-xs text-slate-400 truncate">${t.service_name || serviceName(t.service_id)}</span>
+        const chip = document.createElement('span');
+        chip.className = 'fade-in num inline-flex items-center gap-2 text-base font-bold px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700';
+        chip.innerHTML = `
+            <span class="text-xs font-black text-indigo-300">${i + 1}</span>
+            <span>${t.code}</span>
         `;
-        els.nextTicketsList.appendChild(li);
+        chip.title = t.service_name || serviceName(t.service_id);
+        els.nextTicketsList.appendChild(chip);
     });
 }
 
 function updateMarquee() {
     const called = getLatestCalled(engine.getTickets());
     const parts = [];
-    if (called) parts.push(`🔔 Nomor ${called.code} dipanggil menuju ${called.counter_name || 'loket pelayanan'}`);
-    parts.push('Selamat datang di QSmart NextQ');
+    if (called && called.counter_name) {
+        parts.push(`🔔 Nomor ${called.code} dipanggil menuju ${called.counter_name}`);
+    }
+    parts.push('Selamat datang di Klinik QSmart');
     parts.push('Silakan ambil nomor antrean melalui mesin antrean');
     parts.push('Mohon menunggu panggilan nomor Anda');
     parts.push('Terima kasih atas kesabaran Anda');

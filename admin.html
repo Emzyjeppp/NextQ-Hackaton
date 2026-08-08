@@ -3,126 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QSmart NextQ – Panel Admin</title>
+    <title>Q-Smart Operator Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
         .num { font-variant-numeric: tabular-nums; }
-        .pulse-red { animation: pulseRed 1s ease-in-out infinite; }
-        @keyframes pulseRed {
-            0%, 100% { background-color: rgba(244, 63, 94, 0.15); color: #fda4af; }
-            50% { background-color: rgba(244, 63, 94, 0.45); color: #fff; }
-        }
         .fade-in { animation: fadeIn .3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
-    <div class="max-w-7xl mx-auto px-4 py-6">
 
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-                <h1 class="text-2xl font-extrabold tracking-tight">
-                    <span class="text-indigo-400">QSmart</span> Panel Admin
-                </h1>
-                <p class="text-sm text-slate-400 mt-1">Sistem Antrean Digital NextQ Hackathon – kontrol loket &amp; antrean secara realtime</p>
-            </div>
+    <!-- Sticky Header -->
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800">
+        <div class="max-w-[1600px] mx-auto px-6 py-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <label class="text-sm text-slate-400 font-medium" for="selectCounter">Loket aktif</label>
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-xl font-black shrink-0">Q</div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight leading-none">Q-Smart Operator Panel</h1>
+                    <p class="text-xs text-slate-400 mt-0.5">Sistem Antrean Digital · NextQ Hackathon</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <label for="selectCounter" class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Loket Aktif</label>
                 <select id="selectCounter"
-                    class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[200px]"></select>
-                <button id="btnResetDemo" class="text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">Reset Demo</button>
+                    class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[220px]"></select>
+                <button id="btnResetDemo"
+                    class="text-xs font-semibold px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition active:scale-95">↺ Reset Demo</button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Stat Cards -->
-        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-sky-400">Menunggu</p>
-                <p id="statWaiting" class="num text-4xl font-extrabold mt-2">0</p>
-                <p class="text-xs text-slate-500 mt-1">tiket dalam antrean</p>
+    <main class="max-w-[1600px] mx-auto px-6 py-6">
+
+        <!-- 4 Stat Cards -->
+        <section class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+            <!-- Menunggu Antrean -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Menunggu Antrean</p>
+                    <p id="statWaiting" class="num text-4xl font-extrabold mt-2 text-sky-400">0</p>
+                    <p class="text-xs text-slate-500 mt-1">tiket menunggu</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-amber-400">Dipanggil</p>
-                <p id="statCalling" class="num text-4xl font-extrabold mt-2">0</p>
-                <p class="text-xs text-slate-500 mt-1">menunggu konfirmasi hadir</p>
+            <!-- Dipanggil / Serving -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Dipanggil / Serving</p>
+                    <p id="statCalling" class="num text-4xl font-extrabold mt-2 text-amber-400">0</p>
+                    <p class="text-xs text-slate-500 mt-1">menunggu konfirmasi</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </div>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Selesai</p>
-                <p id="statDone" class="num text-4xl font-extrabold mt-2">0</p>
-                <p class="text-xs text-slate-500 mt-1">tiket selesai dilayani</p>
+            <!-- Selesai Hari Ini -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Selesai Hari Ini</p>
+                    <p id="statDone" class="num text-4xl font-extrabold mt-2 text-emerald-400">0</p>
+                    <p class="text-xs text-slate-500 mt-1">tiket selesai</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-violet-400">Rata-rata Durasi</p>
-                <p id="statAvgDuration" class="num text-4xl font-extrabold mt-2">--</p>
-                <p class="text-xs text-slate-500 mt-1">per pelayanan</p>
+            <!-- Rata-rata Durasi -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Rata-rata Durasi</p>
+                    <p id="statAvgDuration" class="num text-4xl font-extrabold mt-2 text-violet-400">--</p>
+                    <p class="text-xs text-slate-500 mt-1">per pelayanan</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-violet-500/15 text-violet-400 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
             </div>
         </section>
 
-        <!-- Active Ticket + Actions -->
-        <section class="grid lg:grid-cols-3 gap-4 mb-6">
-            <div class="lg:col-span-2 bg-gradient-to-br from-indigo-600/20 to-slate-900 border border-indigo-500/30 rounded-2xl p-6">
-                <p class="text-xs font-semibold uppercase tracking-wider text-indigo-300 mb-2">Tiket Aktif di Loket</p>
-                <div class="flex items-center gap-6">
-                    <div class="min-w-[180px]">
-                        <p id="activeTicketCode" class="num text-6xl sm:text-7xl font-black tracking-tight">—</p>
-                    </div>
-                    <div class="flex-1">
-                        <p id="activeTicketInfo" class="text-sm text-slate-300">Belum ada tiket aktif</p>
-                        <div id="graceWrapper" class="mt-3 hidden">
-                            <p class="text-xs text-slate-400 mb-1">Batas waktu hadir</p>
-                            <p id="graceCountdownText" class="num inline-block bg-amber-500/15 text-amber-300 border border-amber-500/40 rounded-xl px-4 py-2 text-2xl font-bold">--</p>
+        <!-- Call Control Card -->
+        <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 mb-6">
+            <div class="flex flex-col xl:flex-row gap-6">
+                <!-- Active ticket -->
+                <div class="flex-1">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Tiket Aktif di Loket</p>
+                    <div class="flex flex-wrap items-center gap-6">
+                        <p id="activeTicketCode" class="num text-7xl 2xl:text-8xl font-black tracking-tight text-white">—</p>
+                        <div>
+                            <p id="activeTicketService" class="text-lg font-semibold text-slate-200">—</p>
+                            <span id="activeCounterBadge" class="inline-block mt-1.5 text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/40">LOKET —</span>
                         </div>
                     </div>
+                    <div id="graceWrapper" class="mt-4 hidden">
+                        <p class="text-xs text-slate-400 mb-1.5">Batas waktu hadir (grace period)</p>
+                        <p id="graceCountdownText" class="num inline-block bg-amber-500/15 text-amber-300 border border-amber-500/40 rounded-xl px-5 py-2.5 text-3xl font-bold">--</p>
+                    </div>
                 </div>
-            </div>
-
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3">
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Aksi Loket</p>
-                <button id="btnCallNext"
-                    class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.98] font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
-                    📣 Panggil Berikutnya
-                </button>
-                <button id="btnServe"
-                    class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[.98] font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
-                    ✅ Tandai Hadir / Layani
-                </button>
-                <button id="btnFinish"
-                    class="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 active:scale-[.98] font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
-                    🏁 Selesaikan Pelayanan
-                </button>
-                <button id="btnSkip"
-                    class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[.98] font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
-                    ⏭ Lewati Tiket
-                </button>
+                <!-- Action buttons -->
+                <div class="grid grid-cols-2 gap-3 xl:w-[360px] xl:shrink-0">
+                    <button id="btnCallNext"
+                        class="py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm active:scale-[.98] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
+                        📣 Panggil Berikutnya
+                    </button>
+                    <button id="btnServe"
+                        class="py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm active:scale-[.98] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
+                        ✔ Hadir
+                    </button>
+                    <button id="btnFinish"
+                        class="py-4 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-sm active:scale-[.98] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
+                        ✓ Selesai
+                    </button>
+                    <button id="btnSkip"
+                        class="py-4 rounded-2xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-sm active:scale-[.98] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
+                        ⏭ Lewati (Skip)
+                    </button>
+                </div>
             </div>
         </section>
 
         <!-- Queue Table -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+        <section class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-800">
                 <h2 class="font-bold text-lg">Daftar Antrean</h2>
-                <select id="queueFilter"
-                    class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="semua">Semua Status</option>
-                    <option value="waiting">Menunggu (Waiting)</option>
-                    <option value="called">Dipanggil (Called)</option>
-                    <option value="done">Selesai (Done)</option>
-                </select>
+                <div class="flex items-center gap-2">
+                    <select id="queueFilter"
+                        class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="semua">Semua Status</option>
+                        <option value="waiting">Waiting</option>
+                        <option value="called">Called</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="text-left text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
-                            <th class="px-5 py-3">No. Antrean</th>
+                        <tr class="text-left text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800 bg-slate-950/40">
+                            <th class="px-5 py-3">Posisi</th>
+                            <th class="px-5 py-3">Kode Tiket</th>
                             <th class="px-5 py-3">Layanan</th>
-                            <th class="px-5 py-3">Status</th>
                             <th class="px-5 py-3">Loket</th>
-                            <th class="px-5 py-3">Waktu Ambil</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3">Waktu Panggilan</th>
                             <th class="px-5 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -132,9 +160,9 @@
         </section>
 
         <footer class="text-center text-xs text-slate-600 mt-8">
-            QSmart NextQ · Hackathon 2026 · buka <a href="display.html" class="text-indigo-400 hover:underline" target="_blank">Display TV</a> di tab lain untuk demo realtime
+            Q-Smart NextQ · Hackathon 2026 · buka <a href="display.html" class="text-indigo-400 hover:underline" target="_blank">Display TV</a> di tab lain untuk demo realtime
         </footer>
-    </div>
+    </main>
 
     <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-slate-100 px-5 py-3 rounded-xl text-sm font-semibold shadow-2xl hidden z-50"></div>

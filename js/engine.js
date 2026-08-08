@@ -48,17 +48,51 @@ class QSmartEngine {
     }
 
     initChannel() {
+        this.supabaseUrl = 'https://vaxlezodrnyzljcmqrmt.supabase.co';
+        this.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZheGxlem9kcm55emxqY21xcm10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNTk0MjksImV4cCI6MjEwMTczNTQyOX0.JrWW_hr5dxkXwtbJ_tfwWs3Hze5OE5kZCxVvz7OKEfU';
+        
         try {
-            this.channel = new BroadcastChannel(this.CHANNEL_NAME);
-            this.channel.onmessage = (event) => {
-                if (event.data && event.data.type === 'TICKETS_UPDATED') {
-                    localStorage.setItem(this.STORAGE_KEYS.TICKETS, JSON.stringify(event.data.data));
-                }
-                this.notifyListeners(event.data);
-            };
+            if (typeof supabase !== 'undefined') {
+                this.supabase = supabase.createClient(this.supabaseUrl, this.supabaseKey);
+                
+                // Ambil state awal dari Supabase
+                this.supabase.from('qsmart_state').select('tickets').eq('id', 1).single()
+                    .then(({ data, error }) => {
+                        if (data && data.tickets) {
+                            localStorage.setItem(this.STORAGE_KEYS.TICKETS, JSON.stringify(data.tickets));
+                            this.notifyListeners({ type: 'TICKETS_UPDATED', data: data.tickets });
+                        }
+                    });
+
+                // Dengarkan perubahan pada tabel
+                this.supabase
+                    .channel('public:qsmart_state')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'qsmart_state' }, payload => {
+                        if (payload.new && payload.new.tickets) {
+                            localStorage.setItem(this.STORAGE_KEYS.TICKETS, JSON.stringify(payload.new.tickets));
+                            this.notifyListeners({ type: 'TICKETS_UPDATED', data: payload.new.tickets });
+                        }
+                    })
+                    .subscribe();
+
+                // Broadcast channel khusus event UI (bunyi bel)
+                this.broadcastChannel = this.supabase.channel('qsmart_events');
+                this.broadcastChannel
+                    .on('broadcast', { event: 'last_event' }, payload => {
+                        this.notifyListeners(payload.payload);
+                    })
+                    .subscribe();
+            }
         } catch (e) {
-            console.warn('BroadcastChannel not supported in this browser.');
+            console.warn('Supabase init failed, using local mode fallback.');
         }
+
+        // Fallback untuk local storage events
+        window.addEventListener('storage', (e) => {
+            if (e.key === this.STORAGE_KEYS.TICKETS) {
+                this.notifyListeners({ type: 'TICKETS_UPDATED', data: this.getTickets() });
+            }
+        });
     }
 
     getServices() {
@@ -73,15 +107,22 @@ class QSmartEngine {
         return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.TICKETS)) || [];
     }
 
-    saveTickets(tickets) {
+    async saveTickets(tickets) {
         localStorage.setItem(this.STORAGE_KEYS.TICKETS, JSON.stringify(tickets));
-        this.broadcast({ type: 'TICKETS_UPDATED', data: tickets });
         this.notifyListeners({ type: 'TICKETS_UPDATED', data: tickets });
+        
+        if (this.supabase) {
+            await this.supabase.from('qsmart_state').upsert({ id: 1, tickets: tickets });
+        }
     }
 
     broadcast(data) {
-        if (this.channel) {
-            this.channel.postMessage(data);
+        if (this.broadcastChannel) {
+            this.broadcastChannel.send({
+                type: 'broadcast',
+                event: 'last_event',
+                payload: data
+            });
         }
     }
 

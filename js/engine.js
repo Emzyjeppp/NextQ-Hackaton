@@ -298,66 +298,9 @@ class QSmartEngine {
     }
 
     resetDemoData() {
-        const now = new Date();
-        const tickets = [];
-        let pos = 1;
-
-        // 5 Done (Poli Umum)
-        for (let i=1; i<=5; i++) {
-            tickets.push({
-                id: 'tkt_demo_d' + i, service_id: 'srv_1', service_name: 'Poli Umum', prefix: 'A', number: i, code: `A-${String(i).padStart(3, '0')}`,
-                queue_position: pos++, session_id: 'demo', status: 'done', skip_count: 0,
-                counter_id: 'ctr_1', counter_name: 'Loket 1',
-                created_at: new Date(now.getTime() - (60-i)*60000).toISOString(),
-                called_at: new Date(now.getTime() - (55-i)*60000).toISOString(),
-                served_at: new Date(now.getTime() - (54-i)*60000).toISOString(),
-                grace_expires_at: null,
-                done_at: new Date(now.getTime() - (50-i)*60000).toISOString()
-            });
-        }
-        
-        // 1 Serving (Poli Gigi)
-        tickets.push({
-            id: 'tkt_demo_s1', service_id: 'srv_2', service_name: 'Poli Gigi', prefix: 'B', number: 1, code: 'B-001',
-            queue_position: pos++, session_id: 'demo', status: 'serving', skip_count: 0,
-            counter_id: 'ctr_2', counter_name: 'Loket 2',
-            created_at: new Date(now.getTime() - 20*60000).toISOString(),
-            called_at: new Date(now.getTime() - 10*60000).toISOString(),
-            served_at: new Date(now.getTime() - 9*60000).toISOString(),
-            grace_expires_at: null,
-            done_at: null
-        });
-
-        // 1 Called (Apotek) - Grace berjalan
-        tickets.push({
-            id: 'tkt_demo_c1', service_id: 'srv_3', service_name: 'Apotek', prefix: 'C', number: 1, code: 'C-001',
-            queue_position: pos++, session_id: 'demo', status: 'called', skip_count: 0,
-            counter_id: 'ctr_3', counter_name: 'Loket 3',
-            created_at: new Date(now.getTime() - 15*60000).toISOString(),
-            called_at: new Date(now.getTime() - 60000).toISOString(),
-            served_at: null,
-            grace_expires_at: new Date(now.getTime() + 120000).toISOString(), // 2 minutes left
-            done_at: null
-        });
-
-        // 8 Waiting (Mix)
-        for (let i=1; i<=8; i++) {
-            let srv = (i%3===0) ? 'srv_3' : ((i%2===0) ? 'srv_2' : 'srv_1');
-            let pre = (i%3===0) ? 'C' : ((i%2===0) ? 'B' : 'A');
-            let num = (i%3===0) ? i+1 : i+5;
-            let srvObj = this.defaultServices.find(s => s.id === srv);
-            tickets.push({
-                id: 'tkt_demo_w' + i, service_id: srv, service_name: srvObj ? srvObj.name : 'Service', prefix: pre, number: num, code: `${pre}-${String(num).padStart(3, '0')}`,
-                queue_position: pos++, session_id: 'demo', status: 'waiting', skip_count: 0,
-                counter_id: null, counter_name: null,
-                created_at: new Date(now.getTime() - (10-i)*60000).toISOString(),
-                called_at: null, served_at: null, grace_expires_at: null, done_at: null
-            });
-        }
-
-        this.saveTickets(tickets);
+        this.saveTickets([]);
         this.broadcast({ type: 'DEMO_RESET' });
-        console.log('Demo data reset: 15 tickets generated.');
+        console.log('Data reset: 0 tickets.');
     }
 }
 

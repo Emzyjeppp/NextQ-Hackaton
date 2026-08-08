@@ -51,6 +51,9 @@ class QSmartEngine {
         try {
             this.channel = new BroadcastChannel(this.CHANNEL_NAME);
             this.channel.onmessage = (event) => {
+                if (event.data && event.data.type === 'TICKETS_UPDATED') {
+                    localStorage.setItem(this.STORAGE_KEYS.TICKETS, JSON.stringify(event.data.data));
+                }
                 this.notifyListeners(event.data);
             };
         } catch (e) {

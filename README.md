@@ -1,6 +1,8 @@
-# Q-Smart (Antrean Cerdas) 🚀
+# NextQ 🚀
 
-Q-Smart adalah sistem antrean digital modern berbasis web yang dirancang untuk memberikan pengalaman antre yang lebih baik, tanpa stres, dan penuh kepastian bagi pasien maupun pelanggan.
+> *Smart Queue, Zero Queue: Solusi antrean masa depan yang mulus tanpa hambatan.*
+
+NextQ adalah sistem antrean digital modern berbasis web yang dirancang untuk memberikan pengalaman antre yang lebih baik, tanpa stres, dan penuh kepastian bagi pasien maupun pelanggan.
 
 Aplikasi ini berjalan **100% di sisi klien (browser)** tanpa memerlukan server backend. Seluruh data disimpan secara lokal menggunakan `localStorage` dan disinkronisasikan antar-tab secara *realtime* memanfaatkan **BroadcastChannel API**.
 
@@ -48,7 +50,7 @@ Karena aplikasi ini sepenuhnya berbasis HTML statis, Anda dapat menjalankannya d
 ## 🌐 Live Demo
 
 Cobalah langsung tanpa perlu instalasi!
-👉 [**Demo Q-Smart di Netlify**](https://nextq-hackaton.netlify.app/)
+👉 [**Demo NextQ di Netlify**](https://nextq-hackaton.netlify.app/)
 
 *(Ingat: untuk melihat efek sinkronisasi realtime, pastikan Anda membuka halaman Pasien, Admin, dan Display TV pada tab-tab di satu aplikasi browser yang sama).*
 

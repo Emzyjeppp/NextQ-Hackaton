@@ -1,12 +1,12 @@
-// NextQEngine Class
-class NextQEngine {
+// QSmartEngine Class
+class QSmartEngine {
     constructor() {
         this.STORAGE_KEYS = {
-            TICKETS: 'nextq_tickets_v1',
-            SERVICES: 'nextq_services_v1',
-            COUNTERS: 'nextq_counters_v1'
+            TICKETS: 'qsmart_tickets_v1',
+            SERVICES: 'qsmart_services_v1',
+            COUNTERS: 'qsmart_counters_v1'
         };
-        this.CHANNEL_NAME = 'nextq_realtime_channel';
+        this.CHANNEL_NAME = 'qsmart_realtime_channel';
         
         this.defaultServices = [
             { id: 'srv_1', name: 'Poli Umum', prefix: 'A', defaultDuration: 300, icon: 'stethoscope', color: 'blue' },
@@ -91,10 +91,10 @@ class NextQEngine {
     }
 
     getSessionId() {
-        let sid = sessionStorage.getItem('nextq_session_id');
+        let sid = sessionStorage.getItem('qsmart_session_id');
         if (!sid) {
             sid = 'sess_' + Math.random().toString(36).substr(2, 9);
-            sessionStorage.setItem('nextq_session_id', sid);
+            sessionStorage.setItem('qsmart_session_id', sid);
         }
         return sid;
     }
@@ -142,7 +142,7 @@ class NextQEngine {
 
         tickets.push(newTicket);
         this.saveTickets(tickets);
-        sessionStorage.setItem('nextq_my_ticket_id', newTicket.id);
+        sessionStorage.setItem('qsmart_my_ticket_id', newTicket.id);
         
         return newTicket;
     }
@@ -358,4 +358,4 @@ class NextQEngine {
     }
 }
 
-window.nextqEngine = new NextQEngine();
+window.qsmartEngine = new QSmartEngine();

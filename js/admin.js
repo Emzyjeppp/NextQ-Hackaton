@@ -1,5 +1,5 @@
-// NextQ Admin Controller (Member C)
-const engine = window.nextqEngine;
+// Q-Smart Admin Controller (Member C)
+const engine = window.qsmartEngine;
 
 const GRACE_WARN_SECONDS = 30;
 

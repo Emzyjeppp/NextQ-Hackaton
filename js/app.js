@@ -1,5 +1,5 @@
 // js/app.js
-const engine = window.nextqEngine;
+const engine = window.qsmartEngine;
 
 // Elements
 const servicesList = document.getElementById('servicesList');
@@ -14,7 +14,7 @@ const callingAlertBox = document.getElementById('callingAlertBox');
 const overviewList = document.getElementById('overviewList');
 
 // State
-let myCurrentTicketId = sessionStorage.getItem('nextq_my_ticket_id');
+let myCurrentTicketId = sessionStorage.getItem('qsmart_my_ticket_id');
 
 function init() {
     engine.subscribe(onDataUpdate);
@@ -184,7 +184,7 @@ window.ambilTiket = function(serviceId) {
         const newTicket = engine.ambilNomor(serviceId);
         if (newTicket) {
             myCurrentTicketId = newTicket.id;
-            sessionStorage.setItem('nextq_my_ticket_id', myCurrentTicketId);
+            sessionStorage.setItem('qsmart_my_ticket_id', myCurrentTicketId);
             renderApp();
             
             // Scroll to top
@@ -203,7 +203,7 @@ window.batalTiket = function() {
                 engine.saveTickets(tickets);
             }
             myCurrentTicketId = null;
-            sessionStorage.removeItem('nextq_my_ticket_id');
+            sessionStorage.removeItem('qsmart_my_ticket_id');
             renderApp();
             
             window.scrollTo({ top: 0, behavior: 'smooth' });

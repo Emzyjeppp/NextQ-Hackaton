@@ -302,7 +302,7 @@ class QSmartEngine {
         // 5 Done (Poli Umum)
         for (let i=1; i<=5; i++) {
             tickets.push({
-                id: 'tkt_demo_d' + i, service_id: 'srv_1', service_name: 'Poli Umum', prefix: 'A', number: i, code: 'A-00' + i,
+                id: 'tkt_demo_d' + i, service_id: 'srv_1', service_name: 'Poli Umum', prefix: 'A', number: i, code: `A-${String(i).padStart(3, '0')}`,
                 queue_position: pos++, session_id: 'demo', status: 'done', skip_count: 0,
                 counter_id: 'ctr_1', counter_name: 'Loket 1',
                 created_at: new Date(now.getTime() - (60-i)*60000).toISOString(),
@@ -342,8 +342,9 @@ class QSmartEngine {
             let srv = (i%3===0) ? 'srv_3' : ((i%2===0) ? 'srv_2' : 'srv_1');
             let pre = (i%3===0) ? 'C' : ((i%2===0) ? 'B' : 'A');
             let num = (i%3===0) ? i+1 : i+5;
+            let srvObj = this.defaultServices.find(s => s.id === srv);
             tickets.push({
-                id: 'tkt_demo_w' + i, service_id: srv, service_name: 'Service', prefix: pre, number: num, code: `${pre}-00${num}`,
+                id: 'tkt_demo_w' + i, service_id: srv, service_name: srvObj ? srvObj.name : 'Service', prefix: pre, number: num, code: `${pre}-${String(num).padStart(3, '0')}`,
                 queue_position: pos++, session_id: 'demo', status: 'waiting', skip_count: 0,
                 counter_id: null, counter_name: null,
                 created_at: new Date(now.getTime() - (10-i)*60000).toISOString(),

@@ -203,7 +203,7 @@ function updateMarquee() {
     if (called && called.counter_name) {
         parts.push(`🔔 Nomor ${called.code} dipanggil menuju ${called.counter_name}`);
     }
-    parts.push('Selamat datang di Klinik QSmart');
+    parts.push('Selamat datang di Klinik NextQ');
     parts.push('Silakan ambil nomor antrean melalui mesin antrean');
     parts.push('Mohon menunggu panggilan nomor Anda');
     parts.push('Terima kasih atas kesabaran Anda');

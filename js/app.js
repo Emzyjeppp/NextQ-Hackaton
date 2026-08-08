@@ -1,15 +1,6 @@
 // js/app.js
 const engine = window.qsmartEngine;
 
-const colorMap = {
-    'srv_1': { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-100', icon: 'bg-indigo-100' }, // Poli Umum (indigo)
-    'srv_2': { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100', icon: 'bg-emerald-100' }, // Poli Gigi (emerald)
-    'srv_3': { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100', icon: 'bg-amber-100' } // Apotek (amber)
-};
-
-// State
-let myCurrentTicketId = sessionStorage.getItem('qsmart_my_ticket_id');
-
 // Elements
 const servicesList = document.getElementById('servicesList');
 const myTicketSection = document.getElementById('myTicketSection');
@@ -20,6 +11,10 @@ const ticketStatusBadge = document.getElementById('ticketStatusBadge');
 const peopleAheadText = document.getElementById('peopleAheadText');
 const estimatedTimeText = document.getElementById('estimatedTimeText');
 const callingAlertBox = document.getElementById('callingAlertBox');
+const overviewList = document.getElementById('overviewList');
+
+// State
+let myCurrentTicketId = sessionStorage.getItem('qsmart_my_ticket_id');
 
 function init() {
     engine.subscribe(onDataUpdate);
@@ -58,6 +53,13 @@ function renderApp() {
         callingAlertBox.classList.add('hidden');
         renderServices();
     }
+    
+    renderOverview();
+    
+    // Render Lucide icons for dynamically added elements
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
 }
 
 function renderServices() {
@@ -70,34 +72,36 @@ function renderServices() {
         // Find waiting tickets for this service
         const waiting = tickets.filter(t => t.service_id === service.id && ['waiting', 'called', 'serving'].includes(t.status)).length;
         
-        // Use engine to calculate mock estimation if we just add a ticket at the end
         let estimatedMins = 0;
         if (waiting > 0) {
             estimatedMins = Math.ceil((waiting * service.defaultDuration) / 60);
         }
 
-        const colors = colorMap[service.id] || { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-100', icon: 'bg-slate-100' };
+        // Map icons for Lucide based on service name or ID
+        let iconName = 'stethoscope';
+        if (service.id === 'srv_2') iconName = 'smile'; // Tooth equivalent
+        if (service.id === 'srv_3') iconName = 'pill';
 
         const card = document.createElement('div');
-        card.className = `${colors.bg} ${colors.border} border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-transform transform hover:scale-[1.02] active:scale-95 shadow-sm mb-3`;
-        card.onclick = () => ambilTiket(service.id);
+        card.className = 'bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col gap-4 shadow-sm';
         
         card.innerHTML = `
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full ${colors.icon} ${colors.text} flex items-center justify-center text-xl shrink-0">
-                    <i class="fas fa-${service.icon}"></i>
+                <div class="w-12 h-12 rounded-xl bg-slate-700/50 text-indigo-400 flex items-center justify-center text-xl shrink-0 border border-slate-600/50">
+                    <i data-lucide="${iconName}" class="w-6 h-6"></i>
                 </div>
-                <div>
-                    <h3 class="font-bold text-slate-800 text-lg">${service.name}</h3>
-                    <div class="text-sm text-slate-500 flex gap-3 mt-1">
-                        <span><i class="fas fa-users mr-1"></i> ${waiting} Antrean</span>
-                        <span><i class="fas fa-clock mr-1"></i> ~${estimatedMins} mnt</span>
+                <div class="flex-1">
+                    <h3 class="font-bold text-white text-lg">${service.name}</h3>
+                    <div class="text-xs text-slate-400 flex gap-3 mt-1 font-medium">
+                        <span class="flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i> ${waiting} menunggu</span>
+                        <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> ~${estimatedMins} mnt</span>
                     </div>
                 </div>
             </div>
-            <div class="text-slate-400">
-                <i class="fas fa-chevron-right"></i>
-            </div>
+            <button onclick="ambilTiket('${service.id}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-colors active:scale-[0.98] shadow-md flex items-center justify-center gap-2">
+                <span>Ambil Antrean</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
         `;
         
         servicesList.appendChild(card);
@@ -110,40 +114,87 @@ function renderMyTicket(ticket) {
     ticketServiceName.textContent = ticket.service_name;
     ticketCode.textContent = ticket.code;
     
-    peopleAheadText.textContent = est ? `${est.peopleAhead} Orang` : '-';
+    peopleAheadText.textContent = est ? `${est.peopleAhead}` : '-';
     estimatedTimeText.textContent = est ? est.estimatedTimeStr : '-';
     
     // Status Logic
     callingAlertBox.classList.add('hidden');
-    ticketStatusBadge.className = 'inline-block px-4 py-1.5 rounded-full text-sm font-bold';
+    ticketStatusBadge.className = 'inline-flex items-center justify-center px-5 py-2 rounded-full text-sm font-bold shadow-sm';
     
     if (ticket.status === 'waiting') {
-        ticketStatusBadge.textContent = 'Menunggu';
-        ticketStatusBadge.classList.add('bg-slate-100', 'text-slate-600');
+        ticketStatusBadge.textContent = 'Menunggu Giliran';
+        ticketStatusBadge.classList.add('bg-indigo-500/20', 'text-indigo-300', 'border', 'border-indigo-500/30');
     } else if (ticket.status === 'called') {
-        ticketStatusBadge.textContent = \`Menuju \${ticket.counter_name || 'Loket'}\`;
-        ticketStatusBadge.classList.add('bg-yellow-100', 'text-yellow-700');
+        ticketStatusBadge.textContent = 'Dipanggil Sekarang';
+        ticketStatusBadge.classList.add('bg-amber-500/20', 'text-amber-400', 'border', 'border-amber-500/30');
+        
         callingAlertBox.classList.remove('hidden');
-        callingAlertBox.innerHTML = \`<i class="fas fa-bell mr-2"></i> Giliran Anda! Silakan menuju \${ticket.counter_name}.\`;
+        callingAlertBox.innerHTML = `
+            <div class="flex items-center justify-center gap-2 mb-1">
+                <i data-lucide="bell-ring" class="w-5 h-5 animate-bounce"></i>
+                <span class="text-base tracking-wide">GILIRAN ANDA DIPANGGIL</span>
+            </div>
+            <div class="text-amber-900/80 font-medium text-xs">
+                Silakan menuju <strong class="text-amber-950 text-sm uppercase">${ticket.counter_name || 'Loket'}</strong>
+            </div>
+        `;
     } else if (ticket.status === 'serving') {
         ticketStatusBadge.textContent = 'Sedang Dilayani';
-        ticketStatusBadge.classList.add('bg-emerald-100', 'text-emerald-700');
+        ticketStatusBadge.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30');
     }
 }
 
-function ambilTiket(serviceId) {
+function renderOverview() {
+    const services = engine.getServices();
+    const tickets = engine.getTickets();
+    
+    overviewList.innerHTML = '';
+    
+    services.forEach(service => {
+        // Find current serving or called
+        const activeTickets = tickets.filter(t => t.service_id === service.id && ['called', 'serving'].includes(t.status));
+        const waitingCount = tickets.filter(t => t.service_id === service.id && t.status === 'waiting').length;
+        
+        // Pick the first called or serving
+        let currentNumber = '-';
+        if (activeTickets.length > 0) {
+            currentNumber = activeTickets.map(t => t.code).join(', ');
+        }
+        
+        const card = document.createElement('div');
+        card.className = 'bg-slate-800/80 border border-slate-700 rounded-xl p-3 flex justify-between items-center';
+        
+        card.innerHTML = `
+            <div>
+                <div class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">${service.name}</div>
+                <div class="text-xs text-slate-500"><span class="text-slate-400 font-medium">${waitingCount}</span> orang menunggu</div>
+            </div>
+            <div class="text-right">
+                <div class="text-[10px] text-slate-500 uppercase font-semibold mb-0.5">Dipanggil</div>
+                <div class="text-lg font-black text-white bg-slate-900 px-3 py-1 rounded-lg border border-slate-700">${currentNumber}</div>
+            </div>
+        `;
+        
+        overviewList.appendChild(card);
+    });
+}
+
+window.ambilTiket = function(serviceId) {
     if (confirm('Ambil nomor antrean untuk layanan ini?')) {
         const newTicket = engine.ambilNomor(serviceId);
         if (newTicket) {
             myCurrentTicketId = newTicket.id;
             sessionStorage.setItem('qsmart_my_ticket_id', myCurrentTicketId);
             renderApp();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 }
 
 window.batalTiket = function() {
-    if (confirm('Apakah Anda yakin ingin membatalkan antrean ini?')) {
+    if (confirm('Apakah Anda yakin ingin membatalkan tiket antrean ini?')) {
         if (myCurrentTicketId) {
             const tickets = engine.getTickets();
             const idx = tickets.findIndex(t => t.id === myCurrentTicketId);
@@ -154,6 +205,8 @@ window.batalTiket = function() {
             myCurrentTicketId = null;
             sessionStorage.removeItem('qsmart_my_ticket_id');
             renderApp();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 }

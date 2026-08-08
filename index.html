@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QSmart - Antrean Pasien</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+    <!-- Mobile Container -->
+    <div class="max-w-md mx-auto bg-white min-h-screen relative shadow-2xl flex flex-col overflow-hidden">
+        
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white p-4 shadow-md z-10 sticky top-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-hospital text-2xl"></i>
+                    <h1 class="text-xl font-bold">QSmart</h1>
+                </div>
+                <div class="text-xs bg-indigo-500 px-2 py-1 rounded-full border border-indigo-400">Pasien App</div>
+            </div>
+        </header>
+
+        <!-- Calling Alert Banner -->
+        <div id="callingAlertBox" class="hidden bg-yellow-400 text-yellow-900 p-3 text-center font-bold text-sm shadow-inner z-0 callingPulse relative">
+            <i class="fas fa-bell mr-2"></i> Tiket Anda Sedang Dipanggil! Silakan ke Loket.
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+
+            <!-- Active Ticket Section -->
+            <section id="myTicketSection" class="hidden">
+                <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-ticket-alt text-indigo-500"></i> Tiket Aktif Saya
+                </h2>
+                
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
+                    
+                    <div class="mb-2 text-sm font-semibold text-slate-500 uppercase tracking-wider" id="ticketServiceName">Layanan</div>
+                    
+                    <div class="text-5xl font-black text-slate-800 my-4 tracking-tight" id="ticketCode">A-000</div>
+                    
+                    <div class="mb-6">
+                        <span id="ticketStatusBadge" class="inline-block px-4 py-1.5 rounded-full text-sm font-bold bg-slate-100 text-slate-600">
+                            Menunggu
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 mb-5 text-left">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <div class="text-xs text-slate-500 mb-1">Antrean di Depan</div>
+                            <div class="font-bold text-slate-700 flex items-center gap-2">
+                                <i class="fas fa-users text-slate-400"></i> <span id="peopleAheadText">-</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <div class="text-xs text-slate-500 mb-1">Estimasi Waktu</div>
+                            <div class="font-bold text-slate-700 flex items-center gap-2">
+                                <i class="fas fa-clock text-slate-400"></i> <span id="estimatedTimeText">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btnCancelTicket" onclick="batalTiket()" class="w-full py-3 rounded-xl bg-red-50 text-red-600 font-semibold text-sm hover:bg-red-100 transition-colors">
+                        Batalkan Tiket
+                    </button>
+                </div>
+            </section>
+
+            <!-- Services Section -->
+            <section id="servicesSection">
+                <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-list-ul text-indigo-500"></i> Pilih Layanan
+                </h2>
+                <div id="servicesList" class="flex flex-col gap-3">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/engine.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
